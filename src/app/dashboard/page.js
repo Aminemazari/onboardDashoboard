@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../store/authSlice';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faSearch, faEye, faCheck, faTimes, faEdit, faDownload, faUserMd,
@@ -22,8 +23,7 @@ export default function Dashboard() {
   const dispatch = useDispatch();
   const { admin } = useSelector((state) => state.auth);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedSubmission, setSelectedSubmission] = useState(null);
-  const [showModal, setShowModal] = useState(false);
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all');
   const [specialtyFilter, setSpecialtyFilter] = useState('all');
@@ -164,21 +164,8 @@ export default function Dashboard() {
     return iconMap[specialty] || faStethoscope;
   };
 
-  const handleViewDetails = async (submissionId) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/submissions/${submissionId}`);
-      const data = await response.json();
-      
-      if (data.success) {
-        setSelectedSubmission(data.data);
-        setShowModal(true);
-      } else {
-        alert('خطأ في جلب تفاصيل الطلب');
-      }
-    } catch (err) {
-      alert('خطأ في الاتصال بالخادم');
-      console.error('Fetch details error:', err);
-    }
+  const handleViewDetails = (submissionId) => {
+    router.push(`/dashboard/${submissionId}`);
   };
 
   if (loading && submissionsList.length === 0) {
@@ -532,178 +519,7 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Details Modal */}
-        {showModal && selectedSubmission && (
-          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 animate-fadeIn">
-            <div className="bg-white/95 rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border-2 border-blue-100 animate-popUp">
-              <div className="sticky top-0 bg-gradient-to-r from-blue-50 via-purple-50 to-white border-b border-gray-100 px-8 py-6 flex items-center justify-between rounded-t-3xl shadow-sm">
-                <h3 className="text-2xl font-extrabold text-gray-900 flex items-center gap-2">
-                  تفاصيل طلب: <span className="text-blue-600">{selectedSubmission.clinicName}</span>
-                </h3>
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="text-gray-400 hover:text-red-500 transition-colors text-2xl"
-                  title="إغلاق"
-                >
-                  <FontAwesomeIcon icon={faTimes} />
-                </button>
-              </div>
-              <div className="p-8 space-y-8">
-                {/* Basic Information */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-base font-bold text-gray-700 mb-2">اسم العيادة</label>
-                    <p className="text-base text-gray-900 bg-gray-50 p-3 rounded-xl shadow-sm font-semibold">{selectedSubmission.clinicName}</p>
-                  </div>
-                  <div>
-                    <label className="block text-base font-bold text-gray-700 mb-2">اسم الطبيب</label>
-                    <p className="text-base text-gray-900 bg-gray-50 p-3 rounded-xl shadow-sm font-semibold">{selectedSubmission.doctorName}</p>
-                  </div>
-                  <div>
-                    <label className="block text-base font-bold text-gray-700 mb-2">التخصص</label>
-                    <p className="text-base text-gray-900 bg-gray-50 p-3 rounded-xl shadow-sm font-semibold">
-                      {specialtyMap[selectedSubmission.specialty] || selectedSubmission.specialty}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="block text-base font-bold text-gray-700 mb-2">رقم الهاتف</label>
-                    <p className="text-base text-gray-900 bg-gray-50 p-3 rounded-xl shadow-sm font-semibold">{selectedSubmission.phoneNumber}</p>
-                  </div>
-                </div>
-
-                {/* Platform Access Status */}
-                <div>
-                  <h4 className="text-lg font-bold text-gray-900 mb-4">منصات التواصل الاجتماعي</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="flex items-center p-4 bg-gray-50 rounded-xl shadow-sm gap-4">
-                      <FontAwesomeIcon 
-                        icon={faInstagram} 
-                        className={`text-3xl ml-3 ${selectedSubmission.platformAccessAgreement ? 'text-pink-500' : 'text-gray-400'}`}
-                      />
-                      <div>
-                        <p className="text-base font-bold">Instagram</p>
-                        <p className={`text-sm ${selectedSubmission.platformAccessAgreement ? 'text-green-600' : 'text-gray-500'}`}>
-                          {selectedSubmission.platformAccessAgreement ? 'تم التفعيل' : 'غير مفعل'}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center p-4 bg-gray-50 rounded-xl shadow-sm gap-4">
-                      <FontAwesomeIcon 
-                        icon={faFacebook} 
-                        className={`text-3xl ml-3 ${selectedSubmission.platformAccessAgreement ? 'text-blue-600' : 'text-gray-400'}`}
-                      />
-                      <div>
-                        <p className="text-base font-bold">Facebook</p>
-                        <p className={`text-sm ${selectedSubmission.platformAccessAgreement ? 'text-green-600' : 'text-gray-500'}`}>
-                          {selectedSubmission.platformAccessAgreement ? 'تم التفعيل' : 'غير مفعل'}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center p-4 bg-gray-50 rounded-xl shadow-sm gap-4">
-                      <FontAwesomeIcon 
-                        icon={selectedSubmission.platformAccessAgreement ? faCheck : faTimes} 
-                        className={`text-3xl ml-3 ${selectedSubmission.platformAccessAgreement ? 'text-green-500' : 'text-red-500'}`}
-                      />
-                      <div>
-                        <p className="text-base font-bold">الموافقة على المنصات</p>
-                        <p className={`text-sm ${selectedSubmission.platformAccessAgreement ? 'text-green-600' : 'text-red-600'}`}>
-                          {selectedSubmission.platformAccessAgreement ? 'تمت الموافقة' : 'لم تتم الموافقة'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Contact Information */}
-                <div>
-                  <h4 className="text-lg font-bold text-gray-900 mb-4">معلومات الاتصال</h4>
-                  <div className="grid grid-cols-1 gap-6">
-                    <div>
-                      <label className="block text-base font-bold text-gray-700 mb-2">عنوان العيادة</label>
-                      <p className="text-base text-gray-900 bg-gray-50 p-3 rounded-xl shadow-sm font-semibold">{selectedSubmission.googleMapsLink}</p>
-                    </div>
-                    <div>
-                      <label className="block text-base font-bold text-gray-700 mb-2">ساعات العمل</label>
-                      <p className="text-base text-gray-900 bg-gray-50 p-3 rounded-xl shadow-sm font-semibold">{selectedSubmission.workingHours}</p>
-                    </div>
-                    <div>
-                      <label className="block text-base font-bold text-gray-700 mb-2">Gmail Account</label>
-                      <p className="text-base text-gray-900 bg-gray-50 p-3 rounded-xl shadow-sm font-semibold">{selectedSubmission.gmailAccount}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Files */}
-                <div>
-                  <h4 className="text-lg font-bold text-gray-900 mb-4">الملفات المرفوعة</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {selectedSubmission.logo && (
-                      <div className="flex items-center p-4 bg-gray-50 rounded-xl shadow-sm gap-4">
-                        <FontAwesomeIcon icon={faImage} className="text-blue-500 text-2xl ml-3" />
-                        <div>
-                          <p className="text-base font-bold">شعار العيادة</p>
-                          <a 
-                            href={selectedSubmission.logo} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-sm text-blue-600 hover:underline font-semibold"
-                          >
-                            عرض الملف
-                          </a>
-                        </div>
-                      </div>
-                    )}
-                    {selectedSubmission.pricingFile && (
-                      <div className="flex items-center p-4 bg-gray-50 rounded-xl shadow-sm gap-4">
-                        <FontAwesomeIcon icon={faFileDownload} className="text-green-500 text-2xl ml-3" />
-                        <div>
-                          <p className="text-base font-bold">ملف الأسعار</p>
-                          <a 
-                            href={selectedSubmission.pricingFile} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-sm text-blue-600 hover:underline font-semibold"
-                          >
-                            تحميل الملف
-                          </a>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Status Update Actions */}
-                {selectedSubmission.status === 'قيد المراجعة' && (
-                  <div className="border-t pt-6 mt-4">
-                    <h4 className="text-lg font-bold text-gray-900 mb-4">تحديث الحالة</h4>
-                    <div className="flex gap-6">
-                      <button
-                        onClick={() => {
-                          updateStatus(selectedSubmission._id, 'مُعتمد');
-                          setShowModal(false);
-                        }}
-                        className="bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 text-white px-6 py-3 rounded-xl shadow-lg transition-all font-bold text-base flex items-center gap-2"
-                      >
-                        <FontAwesomeIcon icon={faCheck} className="ml-2" />
-                        اعتماد
-                      </button>
-                      <button
-                        onClick={() => {
-                          updateStatus(selectedSubmission._id, 'مرفوض');
-                          setShowModal(false);
-                        }}
-                        className="bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 text-white px-6 py-3 rounded-xl shadow-lg transition-all font-bold text-base flex items-center gap-2"
-                      >
-                        <FontAwesomeIcon icon={faTimes} className="ml-2" />
-                        رفض
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
+  {/* Details Modal removed: now handled by /dashboard/[id] page */}
       </div>
       </div>
     </ProtectedRoute>

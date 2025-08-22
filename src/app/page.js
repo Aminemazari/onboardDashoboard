@@ -27,7 +27,7 @@ export default function OnboardingForm() {
     pricingFile: null,
     clinicServices: '', // Not required
     doctorBio: '', // Not required
-    doctorPhotos: [], // Not required
+  doctorPhotos: [], // Not required
     primaryColor: '#2563eb', // Not required
     secondaryColor: '#1e40af', // Not required
     accentColor: '#3b82f6', // Not required
@@ -74,10 +74,10 @@ export default function OnboardingForm() {
 
   const handleFileChange = (e) => {
     const { name, files } = e.target;
-    if (files.length > 1) {
-      setFormData((prev) => ({ ...prev, [name]: Array.from(files) }));
+    if (name === 'doctorPhotos') {
+      setFormData((prev) => ({ ...prev, doctorPhotos: Array.from(files) }));
     } else {
-      setFormData((prev) => ({ ...prev, [name]: files[0] }));
+      setFormData((prev) => ({ ...prev, [name]: files.length > 1 ? Array.from(files) : files[0] }));
     }
     setErrors((prev) => ({ ...prev, [name]: false }));
   };
@@ -187,18 +187,18 @@ const validateForm = () => {
         uploadedData.signagePhoto = await uploadToCloudinary(formData.signagePhoto, 'clinic-photos');
       }
       
-      // Upload doctor photos
-      if (formData.doctorPhotos && formData.doctorPhotos.length > 0) {
-        const doctorPhotoUrls = [];
-        for (const photo of formData.doctorPhotos) {
-          if (photo instanceof File) {
-            const url = await uploadToCloudinary(photo, 'doctor-photos');
-            doctorPhotoUrls.push(url);
+      // Upload doctor photos (multiple)
+      if (formData.doctorPhotos && Array.isArray(formData.doctorPhotos) && formData.doctorPhotos.length > 0) {
+        const uploadedDoctorPhotos = [];
+        for (const file of formData.doctorPhotos) {
+          if (file instanceof File) {
+            const url = await uploadToCloudinary(file, 'doctor-photos');
+            uploadedDoctorPhotos.push(url);
           }
         }
-        uploadedData.doctorPhotos = doctorPhotoUrls;
+        uploadedData.doctorPhotos = uploadedDoctorPhotos;
       }
-
+        
       // Now send only URLs and data to backend API (not FormData)
       const response = await fetch('http://localhost:5000/api/submissions', {
         method: 'POST',
@@ -688,7 +688,7 @@ const validateForm = () => {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
                 />
                 <div className="mt-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">رفع صور الأطباء</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">رفع صور الأطباء (يمكنك اختيار عدة صور)</label>
                   <input
                     type="file"
                     name="doctorPhotos"
@@ -697,6 +697,20 @@ const validateForm = () => {
                     onChange={handleFileChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
                   />
+                  {formData.doctorPhotos && Array.isArray(formData.doctorPhotos) && formData.doctorPhotos.length > 0 && (
+                    <div className="flex flex-wrap gap-3 mt-3">
+                      {formData.doctorPhotos.map((file, idx) => (
+                        <div key={idx} className="flex flex-col items-center bg-white p-2 rounded-xl shadow border border-blue-100">
+                          <img
+                            src={URL.createObjectURL(file)}
+                            alt={`doctor-photo-${idx}`}
+                            className="h-20 w-20 object-cover rounded-lg border-2 border-blue-200 mb-1"
+                          />
+                          <span className="text-xs text-gray-500 font-bold mt-1">{file.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="grid md:grid-cols-2 gap-6">

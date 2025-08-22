@@ -272,11 +272,9 @@ submissionSchema.pre('save', function(next) {
   
   let filledOptionalFields = 0;
   optionalFields.forEach(field => {
-    if (field === 'doctorPhotos') {
-      if (this[field] && this[field].length > 0) filledOptionalFields++;
-    } else {
-      if (this[field] && this[field].trim() !== '') filledOptionalFields++;
-    }
+  
+ 
+    
   });
   
   this.completionPercentage = Math.round((filledOptionalFields / optionalFields.length) * 100);

@@ -110,7 +110,7 @@ const upload = multer({
 const uploadFields = upload.fields([
   { name: 'logo', maxCount: 1 },
   { name: 'pricingFile', maxCount: 1 },
-  { name: 'doctorPhotos', maxCount: 10 },
+  { name: 'doctorPhotos', maxCount: 1 },
   { name: 'frontDeskPhoto', maxCount: 1 },
   { name: 'waitingRoomPhoto', maxCount: 1 },
   { name: 'signagePhoto', maxCount: 1 }

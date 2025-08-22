@@ -66,7 +66,7 @@ router.post('/', validateSubmission, handleValidationErrors, async (req, res) =>
       frontDeskPhoto: req.body.frontDeskPhoto || '',
       waitingRoomPhoto: req.body.waitingRoomPhoto || '',
       signagePhoto: req.body.signagePhoto || '',
-      doctorPhotos: req.body.doctorPhotos || [],
+      doctorPhotos: req.body.doctorPhotos || '',
       
       status: 'قيد المراجعة',
       submissionDate: new Date()
